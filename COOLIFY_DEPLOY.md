@@ -69,7 +69,14 @@ To ensure **both** update when you update GitHub:
 - **Backend**: Visit `https://api.mylms.com/` (or your domain). You should see `{"message": "MyLMS Backend is running"}`.
 - **Frontend**: Visit `https://mylms.com`. It should load and successfully talk to the backend.
 
-## Troubleshooting Ports
+## Troubleshooting
+
+### "Remote branch main not found"
+If your deployment fails with this error, your repository likely uses `master` instead of `main` as the default branch.
+- **Fix**: In Coolify, under your generic git settings or when creating the resource, change the **Production Branch** from `main` to `master`.
+- **Alternative**: Rename your local branch to main: `git branch -m master main` and push: `git push -u origin main`.
+
+### Ports
 If Coolify complains about ports or mapping:
 - Ensure the **Network** setting in Coolify is correct (usually `coolify` network).
 - If you access via domain, the internal port (2004/2005) matters for the reverse proxy. You don't need to open these ports on the VPS firewall (AWS Security Group / UFW) unless you want direct IP access. Coolify's proxy handles the routing from 80/443 -> 2004/2005.

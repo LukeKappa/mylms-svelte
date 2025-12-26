@@ -11,7 +11,7 @@ const config = {
 		// adapter-node creates a standalone Node server
 		adapter: adapter()
 	}
-}
 };
+
 
 export default config;
