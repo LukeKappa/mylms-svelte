@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+body {
+    @apply bg-black text-neutral-200;
+    font-family: var(--font-sans);
+}
