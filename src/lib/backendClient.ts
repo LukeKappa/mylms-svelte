@@ -5,6 +5,7 @@
 
 import { env } from '$env/dynamic/public';
 
+console.log('debug: env.PUBLIC_BACKEND_URL', env.PUBLIC_BACKEND_URL);
 const BACKEND_URL = env.PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export interface BackendResponse<T> {
