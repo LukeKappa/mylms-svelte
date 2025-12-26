@@ -42,9 +42,9 @@ This guide explains how to deploy your **Svelte Frontend** and **Python Backend*
    - **Port**: `2005` (The Dockerfile explicitly sets `PORT=2005` and exposes it).
    - **Domains**: Set your domain (e.g., `https://mylms.com`).
    - **Environment Variables**:
-     - `PUBLIC_API_URL`: Set this to your backend URL (e.g., `https://api.mylms.com`).
-     - Any other `PUBLIC_` variables need to be set here at build time or runtime depending on SvelteKit usage.
-     - **Note**: Since we use `adapter-node`, runtime checks for env vars work, but `PUBLIC_` ones are usually baked in at build time. If you change them, you must redeploy.
+     - `PUBLIC_BACKEND_URL`: **Crucial**. Set this to `http://10.0.0.109:2004` (or your domain).
+     - **Note**: Ensure you do NOT include trailing slash.
+     - You *must* click **Redeploy** after adding this.
 5. **Auto-Deploy**:
    - Ensure **Autodeploy** is checked. Push to GitHub -> Coolify rebuilds.
 
@@ -66,8 +66,21 @@ To ensure **both** update when you update GitHub:
 
 ## 4. Verification
 
-- **Backend**: Visit `https://api.mylms.com/` (or your domain). You should see `{"message": "MyLMS Backend is running"}`.
-- **Frontend**: Visit `https://mylms.com`. It should load and successfully talk to the backend.
+- **Backend**: Visit `http://10.0.0.109:2004`. You should see `{"message": "MyLMS Backend is running"}`.
+- **Frontend**: Visit `http://10.0.0.109:2005`. It should load and successfully talk to the backend.
+
+## Authentication & Moodle Token
+
+Your MyLMS app requires a **Moodle Web Service Token** to log in.
+
+**How to get your Token:**
+1. Log in to your Moodle instance (e.g., `https://moodle.example.com`).
+2. Click your **Profile Picture** -> **Preferences**.
+3. Under "User account", click **Security keys**.
+4. Look for the **Moodle mobile web service** key.
+   - If it doesn't exist, your Moodle admin needs to enable Mobile web services.
+5. Copy the Key/Token.
+6. Paste this token into the MyLMS login screen.
 
 ## Troubleshooting
 
@@ -75,6 +88,38 @@ To ensure **both** update when you update GitHub:
 If your deployment fails with this error, your repository likely uses `master` instead of `main` as the default branch.
 - **Fix**: In Coolify, under your generic git settings or when creating the resource, change the **Production Branch** from `main` to `master`.
 - **Alternative**: Rename your local branch to main: `git branch -m master main` and push: `git push -u origin main`.
+
+### "This site can't be reached" / Connection Timed Out
+If you cannot access `http://10.0.0.109:2005`, check these three things:
+
+1.  **Coolify Port Mapping**:
+    - Go to your Svelte Resource in Coolify.
+    - Click **General**.
+    - Ensure **Ports Exposes** is set to `2005`.
+    - **Crucial**: After changing this, you must click **Save** and then **Redeploy**.
+
+2.  **Server Firewall**:
+    - Since `ufw` is not installed, your Linux system is **not** blocking ports.
+    - **The Problem is likely Windows Firewall**.
+    - **Fix**: Open **PowerShell** as Administrator on Windows and run:
+      ```powershell
+      New-NetFirewallRule -DisplayName "Coolify Ports" -Direction Inbound -LocalPort 2004,2005 -Protocol TCP -Action Allow
+      ```
+
+3.  **The "Localhost" Test**:
+    - Open the browser **on the server itself** (the machine running Docker).
+    - Visit `http://localhost:2005`.
+    - **If this works**, but `10.0.0.109` fails, the issue is **WSL Network Bridging**.
+    - **Fix**: WSL 2 does not share its ports with the LAN automatically. You must run this in **Administrator PowerShell**:
+      ```powershell
+      $wsl_ip = (wsl hostname -I).Trim()
+      netsh interface portproxy add v4tov4 listenport=2004 listenaddress=0.0.0.0 connectport=2004 connectaddress=$wsl_ip
+      netsh interface portproxy add v4tov4 listenport=2005 listenaddress=0.0.0.0 connectport=2005 connectaddress=$wsl_ip
+      ```
+
+4.  **Deployment Status**:
+    - Ensure the deployment actually succeeded (Green dot in Coolify).
+    - Check the **Application Logs** in Coolify. If the app crashed, it won't load.
 
 ### Ports
 If Coolify complains about ports or mapping:

@@ -3,7 +3,9 @@
 //! This module provides a client for communicating with the Rust backend.
 //! Used by both client components (directly) and API routes (as proxy).
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+import { env } from '$env/dynamic/public';
+
+const BACKEND_URL = env.PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export interface BackendResponse<T> {
   success?: boolean;
@@ -177,12 +179,12 @@ export const backendClient = {
       },
       body: JSON.stringify({ title, sections }),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'PDF export failed');
     }
-    
+
     return response.blob();
   },
 
